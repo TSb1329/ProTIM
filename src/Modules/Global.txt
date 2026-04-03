@@ -75,42 +75,85 @@ Public Sub Formularaufruf(Formular As String, Übergabetext As String, Gebunden A
 End Sub
 
 
+'Public Function Start()
+'    Call ShowWindow(hWndAccessApp, 2)
+'    Dim lokalerPfad As String
+'
+'    'Laufwerkpfad wird hier angepasst!!!
+'
+'    'Pfad in i4next
+'    'Wenn am lokalen Rechner:
+'    If Left(Application.CurrentProject.Path, 3) = "D:\" Then
+'        lokalerPfad = "D:\"
+'    ElseIf Left(Application.CurrentProject.Path, 15) = "\\I4next-s24\d\" Then
+'        lokalerPfad = "\\I4next-s24\d\"
+'    Else: GoTo ErrNoPath
+'    End If
+'
+'    If Right(Application.CurrentProject.Path, 4) = "Test" Then
+'        Laufwerkpfad = lokalerPfad & "Tools\ProTIM - Test\Projekte\"
+'        LaufwerkpfadBEDB = lokalerPfad & "Tools\ProTIM - Test\"
+'        Entwicklung = True
+'    Else
+'        Laufwerkpfad = lokalerPfad & "Projekte\"
+'        LaufwerkpfadBEDB = lokalerPfad & "Tools\ProTIM\"
+'        Entwicklung = False
+'    End If
+'
+'    NeuVerknüpfen
+'    DoCmd.OpenForm "F_ProjektListe"
+'
+'    Exit Function
+'
+'ErrNoPath:
+'    Hinweis "Fehlerhafter Pfad!"
+'    DoCmd.Quit
+'
+'End Function
+
+
 Public Function Start()
+
     Call ShowWindow(hWndAccessApp, 2)
-    Dim lokalerPfad As String
-    
-    'Laufwerkpfad wird hier angepasst!!!
-    
-    'Pfad in i4next
-    'Wenn am lokalen Rechner:
-    If Left(Application.CurrentProject.Path, 3) = "D:\" Then
-        lokalerPfad = "D:\"
-    ElseIf Left(Application.CurrentProject.Path, 15) = "\\I4next-s24\d\" Then
-        lokalerPfad = "\\I4next-s24\d\"
-    Else: GoTo ErrNoPath
+
+    Dim projektPfad As String
+    Dim letzterOrdner As String
+    Dim basisPfad As String
+
+    projektPfad = Application.CurrentProject.Path
+
+    If Right(projektPfad, 1) = "\" Then
+        projektPfad = Left(projektPfad, Len(projektPfad) - 1)
     End If
-    
-    If Right(Application.CurrentProject.Path, 4) = "Test" Then
-        Laufwerkpfad = lokalerPfad & "Tools\ProTIM - Test\Projekte\"
-        LaufwerkpfadBEDB = lokalerPfad & "Tools\ProTIM - Test\"
-        Entwicklung = True
-    Else
-        Laufwerkpfad = lokalerPfad & "Projekte\"
-        LaufwerkpfadBEDB = lokalerPfad & "Tools\ProTIM\"
-        Entwicklung = False
-    End If
-        
+
+    letzterOrdner = Mid(projektPfad, InStrRev(projektPfad, "\") + 1)
+    basisPfad = Left(projektPfad, InStrRev(projektPfad, "\"))
+
+    Select Case letzterOrdner
+        Case "ProTIM - Test"
+            Laufwerkpfad = projektPfad & "\Projekte\"
+            LaufwerkpfadBEDB = projektPfad & "\"
+            Entwicklung = True
+
+        Case "ProTIM"
+            Laufwerkpfad = projektPfad & "\Projekte\"
+            LaufwerkpfadBEDB = projektPfad & "\"
+            Entwicklung = False
+
+        Case Else
+            GoTo ErrNoPath
+    End Select
+
     NeuVerknüpfen
     DoCmd.OpenForm "F_ProjektListe"
-    
+
     Exit Function
-    
+
 ErrNoPath:
     Hinweis "Fehlerhafter Pfad!"
     DoCmd.Quit
-    
-End Function
 
+End Function
 
 Public Sub NeuVerknüpfen()
     Dim db As Database
