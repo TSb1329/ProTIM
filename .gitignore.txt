@@ -1,0 +1,8 @@
+Projekte/
+*.laccdb
+*.pdf
+*.xml
+*.bmp
+*.png
+*.jpg
+*.gif
