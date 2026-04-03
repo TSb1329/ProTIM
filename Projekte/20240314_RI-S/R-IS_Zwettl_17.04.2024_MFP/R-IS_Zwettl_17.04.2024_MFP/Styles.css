@@ -1,0 +1,25 @@
+@charset "utf-8";
+
+
+#logo {
+	margin-top: 100px;
+}
+
+#balken {
+	margin-top: 70px;
+}
+	
+#content {
+	display: block;
+	font-family: arial;
+	font-size: 14px;
+	font-style: normal;
+	font-weight: bold;
+	color: #000;
+	text-align: center;
+}
+
+#menu {
+	text-decoration: none;
+
+}

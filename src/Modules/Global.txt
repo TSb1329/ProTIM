@@ -1,0 +1,560 @@
+Option Compare Database
+Option Explicit
+
+
+Public Declare PtrSafe Function ShowWindow Lib "user32" (ByVal hwnd As Long, ByVal nCmdShow As Long) As Long
+
+Public Laufwerkpfad As String
+Public LaufwerkpfadBEDB As String
+Public Entwicklung As Boolean
+
+Public Zwischenablage As Variant
+Public KundeFirstOpen As Boolean
+Public KundeEdit As Boolean
+
+Public MeldungTxt As String
+
+Public TempProjektNr As Long
+Public SelectedProjektNr As Long
+Public TempVorgangAngebotID As Long
+Public TempVorgangAbholterminID As Long
+Public TempVorgangAbholungID As Long
+Public TempVorgangAbholpapiereID As Long
+Public TempVorgangLöschungID As Long
+Public TempVorgangLöschzertifikateID As Long
+Public TempVorgangVerrechnungID As Long
+Public TempVorgangerledigtID As Long
+Public GblKundenID As Long
+Public GblAnsprechpersonID As Long
+Public GblAnsprechperson As String
+
+Public Const FormularEbenen = 10
+Public FormularEbene(FormularEbenen) As String
+'im F_ProjektListe wird der Fokus auf alle Formular aufsteigend bis zu "" gesetz
+
+'globale Variablen für BoxenAdmin
+Public ZiLLvon As Long
+Public ZiLLANZ As Long
+Public ZUWLvon As Long
+Public ZUWLANZ As Long
+
+
+Public Function FilterKundenID() As Long
+    FilterKundenID = GblKundenID
+End Function
+
+
+Public Sub Formularaufruf(Formular As String, Übergabetext As String, Gebunden As Boolean)
+    Dim i As Integer
+    
+    For i = 1 To FormularEbenen
+        If FormularEbene(i) = "" Then
+            FormularEbene(i) = Formular
+            Exit For
+        End If
+    Next i
+    If Gebunden Then
+        If Übergabetext <> "ohne" Then
+            DoCmd.OpenForm Formular, , , Übergabetext, , acDialog
+        Else
+            DoCmd.OpenForm Formular, , , , , acDialog
+        End If
+    Else
+        If Übergabetext <> "ohne" Then
+            DoCmd.OpenForm Formular, , , Übergabetext
+        Else
+            DoCmd.OpenForm Formular
+        End If
+    End If
+    For i = 1 To (FormularEbenen - 1)
+        If FormularEbene(i + 1) = "" Then
+            FormularEbene(i) = ""
+            Exit For
+        End If
+    Next i
+End Sub
+
+
+Public Function Start()
+    Call ShowWindow(hWndAccessApp, 2)
+    Dim lokalerPfad As String
+    
+    'Laufwerkpfad wird hier angepasst!!!
+    
+    'Pfad in i4next
+    'Wenn am lokalen Rechner:
+    If Left(Application.CurrentProject.Path, 3) = "D:\" Then
+        lokalerPfad = "D:\"
+    ElseIf Left(Application.CurrentProject.Path, 15) = "\\I4next-s24\d\" Then
+        lokalerPfad = "\\I4next-s24\d\"
+    Else: GoTo ErrNoPath
+    End If
+    
+    If Right(Application.CurrentProject.Path, 4) = "Test" Then
+        Laufwerkpfad = lokalerPfad & "Tools\ProTIM - Test\Projekte\"
+        LaufwerkpfadBEDB = lokalerPfad & "Tools\ProTIM - Test\"
+        Entwicklung = True
+    Else
+        Laufwerkpfad = lokalerPfad & "Projekte\"
+        LaufwerkpfadBEDB = lokalerPfad & "Tools\ProTIM\"
+        Entwicklung = False
+    End If
+        
+    NeuVerknüpfen
+    DoCmd.OpenForm "F_ProjektListe"
+    
+    Exit Function
+    
+ErrNoPath:
+    Hinweis "Fehlerhafter Pfad!"
+    DoCmd.Quit
+    
+End Function
+
+
+Public Sub NeuVerknüpfen()
+    Dim db As Database
+    Dim strPfadZurExterneDB As String
+    Dim arrTabellennamen As Variant
+    Dim strTabellenname As Variant
+    Dim strNeueVerknüpfung As String
+    
+    ' Setze den Pfad zur externen Datenbank
+    strPfadZurExterneDB = LaufwerkpfadBEDB & "ProTIM_BE.accdb"
+    
+    ' Definiere die Liste der Tabellennamen
+    arrTabellennamen = Array("Abfallarten", "AktiveUser", "Artikel", "ArtikelConfig", "ArtikelKategorie", "ArtikelListe", "Attachments", "Bearbeiter", "Begleitscheine", "Boxen", "BoxenJournal", "Buchungsarten", "Kunden", "KundenAnsprechperson", "LagerPlätze", "Lieferscheine", "Messarten", "Projekte", "ProjektVorgang", "ProjektVorgänge", "ProjektVorgangGelöscht", "Transportarten", "Transporteure")
+    
+    ' Öffne die aktuelle Datenbank
+    Set db = CurrentDb
+    
+    ' Durchlaufe die Liste der Tabellennamen
+    For Each strTabellenname In arrTabellennamen
+        ' Erstelle die Verbindungsinformationen für die neue Verknüpfung
+        strNeueVerknüpfung = ";DATABASE=" & strPfadZurExterneDB
+        
+        ' Lösche die bestehende Verknüpfung, falls vorhanden
+        On Error Resume Next
+        db.TableDefs.Delete strTabellenname
+        On Error GoTo 0
+        
+        ' Erstelle die neue Verknüpfung
+        db.TableDefs.Append db.CreateTableDef(strTabellenname, dbAttachSavePWD, strTabellenname, strNeueVerknüpfung)
+    Next strTabellenname
+    
+    ' Aktualisiere die Beziehungen und Ansichten
+    db.Relations.Refresh
+    db.QueryDefs.Refresh
+    db.TableDefs.Refresh
+    
+    ' Schließe die Datenbank
+    db.Close
+    
+End Sub
+
+
+Public Sub ActivateUser(Tabelle As String, NrID As Long, Anmelden As Boolean)
+
+    Dim strSQL As String
+
+    DoCmd.SetWarnings False
+    If Anmelden Then
+        strSQL = "INSERT INTO AktiveUser (Tabelle, NrID, User, letzteAktivität) VALUES ('" & Tabelle & "', " & NrID & ", '" & ActiveUser & "', '" & Now & "');"
+    Else
+        strSQL = "DELETE * FROM AktiveUser WHERE Tabelle = '" & Tabelle & "' AND NrID = " & NrID & ";"
+    End If
+    DoCmd.RunSQL strSQL
+    DoCmd.SetWarnings False
+
+End Sub
+
+
+Public Function ActiveUser() As String
+
+    Dim Netzwerk    'late binding
+
+    Set Netzwerk = CreateObject("wscript.network")
+
+    ActiveUser = Netzwerk.UserName & "_" & Netzwerk.Computername
+
+End Function
+
+
+Public Function UserNameID() As Integer
+    Dim Netzwerk    'late binding
+    Dim UserNamePur As String
+    Dim Response As Boolean
+    Dim fertig As Boolean
+    
+    Set Netzwerk = CreateObject("wscript.network")
+
+    UserNamePur = Netzwerk.UserName
+    If DCount("BearbeiterID", "Bearbeiter", "UserNamePur = '" & UserNamePur & "'") > 0 Then
+        UserNameID = DLookup("BearbeiterID", "Bearbeiter", "UserNamePur = '" & UserNamePur & "'")
+    Else
+        fertig = False
+        Do
+        Response = HinweisOKCancel("Username nicht vorhanden, " & UserNamePur & " eintragen?")
+        If Response Then
+            Zwischenablage = UserNamePur
+            'DoCmd.OpenForm "F_BearbeiterRahmen", , , , , acDialog
+            Formularaufruf "F_BearbeiterRahmen", "ohne", True
+            If DCount("BearbeiterID", "Bearbeiter", "UserNamePur = '" & UserNamePur & "'") > 0 Then
+                UserNameID = DLookup("BearbeiterID", "Bearbeiter", "UserNamePur = '" & UserNamePur & "'")
+                fertig = True
+            Else
+                Hinweis "Fehlerhafter Eintrag!"
+            End If
+        Else
+            UserNameID = 1
+            fertig = True
+        End If
+        Loop While Not fertig
+    End If
+
+End Function
+
+
+Public Function maxWert(Wert As String, Tabelle As String) As Integer
+    Dim db As DAO.Database
+    Dim rs As DAO.Recordset
+
+    Set db = CurrentDb()
+    
+    On Error GoTo Fehlerbehandlung
+    Set rs = db.OpenRecordset("SELECT Max([" & Wert & "]) AS MaxWert FROM [" & Tabelle & "]")
+
+    If Not rs.EOF Then
+        maxWert = Nz(rs!maxWert, 0)
+    Else
+        maxWert = 0
+    End If
+
+    rs.Close
+    Set rs = Nothing
+    Set db = Nothing
+    Exit Function
+
+Fehlerbehandlung:
+    MsgBox "Fehler in maxWert: " & Err.Description, vbCritical
+    maxWert = -1
+End Function
+
+'Public Function maxWert(Wert As String, Tabelle As String) As Integer
+'    Dim db As DAO.Database
+'    Dim rs As DAO.Recordset
+'
+'    ' Öffnen Sie die Datenbank.
+'    Set db = CurrentDb()
+'
+'    ' Führen Sie die Abfrage aus, um den maximalen Wert zu erhalten.
+'    Set rs = db.OpenRecordset("SELECT Max(" & Wert & ") AS MaxWert FROM " & Tabelle)
+'    maxWert = rs("MaxWert")
+'End Function
+
+
+Public Sub DirListe(DateienImPfad As ListBox)
+    Dim strOrdnerPfad As String
+    Dim strDatei As String
+
+    ' Definiere den Pfad zum Ordner, dessen Inhalt du anzeigen möchtest
+    strOrdnerPfad = Laufwerkpfad & Forms!F_ProjektBearbeitung.ProjektName & "\"
+    
+    ' Überprüfe, ob der angegebene Ordner existiert
+    If Dir(strOrdnerPfad, vbDirectory) <> "" Then
+        ' Schleife durch alle Dateien im Ordner
+        strDatei = Dir(strOrdnerPfad & "*.*")
+        DateienImPfad.RowSource = ""
+        Do While strDatei <> ""
+            ' Füge den Dateinamen dem Listenfeld hinzu
+            DateienImPfad.AddItem strDatei
+            ' Gehe zur nächsten Datei im Ordner
+            strDatei = Dir
+        Loop
+    Else
+        Hinweis "Der angegebene Ordner existiert nicht!"
+    End If
+End Sub
+
+
+Public Sub DirCSVDateien(CSVDateien As ListBox)
+    Dim strOrdnerPfad As String
+    Dim strDatei As String
+    Dim strCSVDatei As String
+
+    ' Definiere den Pfad zum Ordner, dessen Inhalt du anzeigen möchtest
+    strOrdnerPfad = Laufwerkpfad & Forms!F_ProjektBearbeitung.ProjektName & "\"
+    
+    ' Überprüfe, ob der angegebene Ordner existiert
+    If Dir(strOrdnerPfad, vbDirectory) <> "" Then
+        ' Schleife durch alle Dateien im Ordner
+        strDatei = Dir(strOrdnerPfad & "*.csv")
+        CSVDateien.RowSource = ""
+        Do While strDatei <> ""
+            ' Füge den Dateinamen dem Listenfeld hinzu
+            strCSVDatei = Laufwerkpfad & Forms!F_ProjektBearbeitung.ProjektName & "\" & strDatei
+            If DCount("Dateiname", "ImportierteCSVDateien", "Dateiname = '" & strCSVDatei & "'") = 0 Then
+                CSVDateien.AddItem strDatei
+            End If
+            ' Gehe zur nächsten Datei im Ordner
+            strDatei = Dir
+        Loop
+    Else
+        Hinweis "Der angegebene Ordner existiert nicht!"
+    End If
+End Sub
+
+
+Public Sub ImportiereCSV(importFileName As String, ZielTabelle As String) ' Pfad zur CSV-Datei
+    Dim db As Database
+    Dim importSpecificationName As String
+    Dim strSQL As String
+    
+    ' vorhandene Daten löschen
+    DoCmd.SetWarnings False
+    strSQL = "DELETE * FROM " & ZielTabelle & ";"
+    DoCmd.RunSQL strSQL
+    DoCmd.SetWarnings True
+    
+    ' Spezifikation für den Import (optional, wenn du eine erstellt hast)
+    importSpecificationName = "Report_csv_Importspezifikation"
+    
+    Set db = CurrentDb
+    
+    ' Führe den Import durch
+    DoCmd.TransferText acImportDelim, importSpecificationName, ZielTabelle, importFileName, True
+
+    Set db = Nothing
+
+End Sub
+
+
+Public Sub EintragInOutlookKalender(Betreff As String, Beginn As Date, Ende As Date, Ort As String, TerminTxt As String)
+    
+    Dim objOutlook As Object
+    Dim objNamespace As Object
+    Dim objFolder As Object
+    Dim objAppointment As Object
+    
+    ' Outlook Objekt erstellen
+    Set objOutlook = CreateObject("Outlook.Application")
+    Set objNamespace = objOutlook.GetNamespace("MAPI")
+    
+    ' Spezifisches Outlook-Konto auswählen
+    On Error Resume Next
+    Set objFolder = objNamespace.Folders("logistics@i4next.com").Folders("Kalender")
+    Set objFolder = objNamespace.Folders("i4next Logistik").Folders("Kalender")
+    On Error GoTo 0
+    If objFolder Is Nothing Then
+        Hinweis "Logistik Kalender wurde nicht gefunden!"
+        Exit Sub
+    End If
+    
+    'bestehenden Termin mit dem Betreff suchen und falls vorhanden dann löschen!
+    For Each objAppointment In objFolder.Items
+        If objAppointment.Class = 26 And objAppointment.Subject = Betreff Then ' 26 steht für Termine (Appointment)
+            ' Eintrag mit dem gesuchten Betreff gefunden, lösche ihn
+            objAppointment.Delete
+            Exit For ' Die Schleife verlassen, da der Eintrag bereits gelöscht wurde
+        End If
+    Next objAppointment
+    
+    ' Neuen Termin im ausgewählten Kalender erstellen
+    Set objAppointment = objFolder.Items.Add(1) ' 1 steht für einen Termin (Appointment)
+    With objAppointment
+        .Subject = Betreff  ' Betreff des Termins
+        .Start = Beginn     ' Startdatum und -zeit des Termins
+        .End = Ende         ' Enddatum und -zeit des Termins
+        .Location = Ort     ' Ort des Termins
+        .Body = Trim(TerminTxt)   ' Text des Termins
+        
+        ' Termin speichern
+        .Save
+    End With
+    
+    ' Objekte freigeben
+    Set objAppointment = Nothing
+    Set objFolder = Nothing
+    Set objNamespace = Nothing
+    Set objOutlook = Nothing
+
+End Sub
+
+
+Public Function EintragAusOutlookKalenderLesen(Betreff As String) As Variant
+    
+    Dim Kalendereintrag(1 To 5) As Variant
+    
+    Dim objOutlook As Object
+    Dim objNamespace As Object
+    Dim objFolder As Object
+    Dim objItem As Object
+    Dim SucheBetreff As String
+    
+    ' Betreff, den du suchen möchtest
+    SucheBetreff = Betreff
+    
+    ' Outlook Objekt erstellen
+    Set objOutlook = CreateObject("Outlook.Application")
+    Set objNamespace = objOutlook.GetNamespace("MAPI")
+    
+    ' Spezifisches Outlook-Konto und Kalenderordner auswählen (ersetze "Kontoname" durch den Namen deines Kontos)
+    On Error Resume Next
+    Set objFolder = objNamespace.Folders("logistics@i4next.com").Folders("Kalender")
+    Set objFolder = objNamespace.Folders("i4next Logistik").Folders("Kalender")
+    On Error GoTo 0
+    If objFolder Is Nothing Then
+        Hinweis "Logistik Kalender wurde nicht gefunden!"
+        Exit Function
+    End If
+    
+    ' Durchlaufe die Items-Auflistung des Kalenders und suche nach dem Betreff
+    For Each objItem In objFolder.Items
+        If objItem.Class = 26 And objItem.Subject = SucheBetreff Then ' 26 steht für Termine (Appointment)
+            ' Betreff wurde gefunden
+            Kalendereintrag(1) = objItem.Subject
+            Kalendereintrag(2) = objItem.Start
+            Kalendereintrag(3) = objItem.End
+            Kalendereintrag(4) = objItem.Location
+            Kalendereintrag(5) = objItem.Body
+        End If
+    Next objItem
+    
+    ' Objekte freigeben
+    Set objItem = Nothing
+    Set objFolder = Nothing
+    Set objNamespace = Nothing
+    Set objOutlook = Nothing
+
+    EintragAusOutlookKalenderLesen = Kalendereintrag
+
+End Function
+
+
+Public Function Hinweis(MsgTxt As String) As Boolean
+    Dim strSQL As String
+    
+    DoCmd.SetWarnings False
+    MsgTxt = Replace(MsgTxt, "'", "''")
+    strSQL = "UPDATE Meldung SET MsgTxt = '" & MsgTxt & "';"
+    DoCmd.RunSQL strSQL
+    DoCmd.SetWarnings True
+    
+    'DoCmd.OpenForm "F_Hinweis", , , , , acDialog
+    Formularaufruf "F_Hinweis", "ohne", True
+    Hinweis = DLookup("OK", "Meldung")
+
+End Function
+
+
+Public Function HinweisOKCancel(MsgTxt As String) As Boolean
+    
+    Dim strSQL As String
+    
+    DoCmd.SetWarnings False
+    MsgTxt = Replace(MsgTxt, "'", "''")
+    strSQL = "UPDATE Meldung SET MsgTxt = '" & MsgTxt & "';"
+    DoCmd.RunSQL strSQL
+    DoCmd.SetWarnings True
+    
+    'DoCmd.OpenForm "F_HinweisOKCancel", , , , , acDialog
+    Formularaufruf "F_HinweisOKCancel", "ohne", True
+    HinweisOKCancel = DLookup("OK", "Meldung")
+
+End Function
+
+
+Public Function FehlerMeldung(MsgTxt As String) As Boolean
+    
+    Dim strSQL As String
+    
+    DoCmd.SetWarnings False
+    MsgTxt = Replace(MsgTxt, "'", "''")
+    strSQL = "UPDATE Meldung SET MsgTxt = '" & MsgTxt & "';"
+    DoCmd.RunSQL strSQL
+    DoCmd.SetWarnings True
+    
+    'DoCmd.OpenForm "F_FehlerMeldung", , , , , acDialog
+    Formularaufruf "F_FehlerMeldung", "ohne", True
+    FehlerMeldung = DLookup("OK", "Meldung")
+
+End Function
+
+
+Public Sub Copy_ArtikelListe(TempProjektNr As Integer)
+    Dim strSQL As String
+    Dim db As DAO.Database
+    Dim rsQuelle As DAO.Recordset
+    
+    DoCmd.SetWarnings False
+    Set db = CurrentDb
+    Set rsQuelle = db.OpenRecordset("SELECT * FROM ArtikelListeTemp ORDER BY AbholNr", dbOpenSnapshot)
+    Do While Not rsQuelle.EOF
+        If Nz(rsQuelle!Menge, 0) > 0 Then
+            strSQL = "INSERT INTO ArtikelListe (ProjektNr, ArtikelKatID, Menge, Bemerkung) " & _
+                        "VALUES (" & TempProjektNr & ", " & rsQuelle!ArtikelKatID & ", " & _
+                        rsQuelle!Menge & ", " & _
+                        "'" & rsQuelle!Bemerkung & "')"
+            db.Execute strSQL, dbFailOnError
+        End If
+        rsQuelle.MoveNext
+    Loop
+
+    rsQuelle.Close
+    Set rsQuelle = Nothing
+    Set db = Nothing
+    DoCmd.SetWarnings True
+End Sub
+
+
+Public Sub Renew_ArtikelListe(TempProjektNr As Integer)
+    'löscht alle Artikel zu einer Projektnummer und schreibt die Artikel aus der ArtikelListeTemp neu
+    Dim strSQL As String
+    Dim db As DAO.Database
+    Dim rsQuelle As DAO.Recordset
+    
+    DoCmd.SetWarnings False
+    strSQL = "DELETE * FROM ArtikelListe WHERE ProjektNr = " & TempProjektNr
+    DoCmd.RunSQL (strSQL)
+    Set db = CurrentDb
+    Set rsQuelle = db.OpenRecordset("SELECT * FROM ArtikelListeTemp ORDER BY AbholNr", dbOpenSnapshot)
+    Do While Not rsQuelle.EOF
+        If Nz(rsQuelle!Menge, 0) > 0 Then
+            strSQL = "INSERT INTO ArtikelListe (ProjektNr, ArtikelKatID, Menge, Bemerkung) " & _
+                        "VALUES (" & TempProjektNr & ", " & rsQuelle!ArtikelKatID & ", " & _
+                        rsQuelle!Menge & ", " & _
+                        "'" & rsQuelle!Bemerkung & "')"
+            db.Execute strSQL, dbFailOnError
+        End If
+        rsQuelle.MoveNext
+    Loop
+
+    rsQuelle.Close
+    Set rsQuelle = Nothing
+    Set db = Nothing
+    DoCmd.SetWarnings True
+End Sub
+
+
+Public Function HatSteuerelement(frm As Form, ctlName As String) As Boolean
+    On Error GoTo Fehler
+    
+    Dim ctl As Control
+    Set ctl = frm.Controls(ctlName)
+    HatSteuerelement = True
+    Exit Function
+
+Fehler:
+    HatSteuerelement = False
+End Function
+
+
+Public Function IstFormularOffen(ByVal FormularName As String) As Boolean
+    On Error GoTo Fehler
+    
+    IstFormularOffen = CurrentProject.AllForms(FormularName).IsLoaded
+    Exit Function
+
+Fehler:
+    IstFormularOffen = False
+End Function

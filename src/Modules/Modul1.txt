@@ -1,0 +1,66 @@
+Option Compare Database
+Option Explicit
+
+Public Sub ExportAccessObjects()
+    Dim exportPath As String
+
+    exportPath = CurrentProject.Path & "\src"
+    EnsureFolder exportPath
+    EnsureFolder exportPath & "\Forms"
+    EnsureFolder exportPath & "\Reports"
+    EnsureFolder exportPath & "\Modules"
+    EnsureFolder exportPath & "\Queries"
+
+    ExportForms exportPath & "\Forms"
+    ExportReports exportPath & "\Reports"
+    ExportModules exportPath & "\Modules"
+    ExportQueries exportPath & "\Queries"
+
+    MsgBox "Export abgeschlossen: " & exportPath, vbInformation
+End Sub
+
+Private Sub ExportForms(ByVal targetFolder As String)
+    Dim obj As AccessObject
+    For Each obj In CurrentProject.AllForms
+        Application.SaveAsText acForm, obj.Name, targetFolder & "\" & CleanFileName(obj.Name) & ".txt"
+    Next obj
+End Sub
+
+Private Sub ExportReports(ByVal targetFolder As String)
+    Dim obj As AccessObject
+    For Each obj In CurrentProject.AllReports
+        Application.SaveAsText acReport, obj.Name, targetFolder & "\" & CleanFileName(obj.Name) & ".txt"
+    Next obj
+End Sub
+
+Private Sub ExportModules(ByVal targetFolder As String)
+    Dim obj As AccessObject
+    For Each obj In CurrentProject.AllModules
+        Application.SaveAsText acModule, obj.Name, targetFolder & "\" & CleanFileName(obj.Name) & ".txt"
+    Next obj
+End Sub
+
+Private Sub ExportQueries(ByVal targetFolder As String)
+    Dim qdf As DAO.QueryDef
+    For Each qdf In CurrentDb.QueryDefs
+        If Left$(qdf.Name, 1) <> "~" Then
+            Application.SaveAsText acQuery, qdf.Name, targetFolder & "\" & CleanFileName(qdf.Name) & ".txt"
+        End If
+    Next qdf
+End Sub
+
+Private Sub EnsureFolder(ByVal folderPath As String)
+    If Dir(folderPath, vbDirectory) = "" Then MkDir folderPath
+End Sub
+
+Private Function CleanFileName(ByVal value As String) As String
+    Dim badChars As Variant
+    Dim i As Long
+
+    badChars = Array("\", "/", ":", "*", "?", """", "<", ">", "|")
+    CleanFileName = value
+
+    For i = LBound(badChars) To UBound(badChars)
+        CleanFileName = Replace(CleanFileName, badChars(i), "_")
+    Next i
+End Function

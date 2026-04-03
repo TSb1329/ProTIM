@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--created with ProTIM-->
+<!-- created by: 9008390437711 -->
+<EBSConsignmentNoteNotification>
+  <NotifierPartyID>9008390437711</NotifierPartyID>
+  <SpecifiedConsignmentNote>
+    <WasteTransportMaterialMovement>
+      <HandOverPartyID>200026</HandOverPartyID>
+      <TakeOverPartyID>200026</TakeOverPartyID>
+      <TypeCode>9008390116371</TypeCode>
+      <LoadingLocation>
+        <PostalAddress>
+          <CityName>Bregenz</CityName>
+          <PostcodeCode>6900</PostcodeCode>
+          <StreetName>Hornbachgasse</StreetName>
+          <BuildingNumber>44</BuildingNumber>
+          <CountryID>AT</CountryID>
+        </PostalAddress>
+      </LoadingLocation>
+      <UnloadingLocation>
+        <OperatingSiteID>9008390894644</OperatingSiteID>
+        <PostalAddress>
+          <CityName>Sooß</CityName>
+          <PostcodeCode>2504</PostcodeCode>
+          <StreetName>Uhlstraße</StreetName>
+          <BuildingNumber>3</BuildingNumber>
+          <CountryID>AT</CountryID>
+        </PostalAddress>
+      </UnloadingLocation>
+      <MovementPeriod>
+        <StartDateTime>2026-04-01</StartDateTime>
+        <EndDateTime>2026-04-01</EndDateTime>
+      </MovementPeriod>
+      <SubordinateMaterialMovement>
+        <TransportModeCode>9008390100059</TransportModeCode>
+        <TransportMeansID>k.A.</TransportMeansID>
+        <CarrierParty>
+          <ID>9008390437711</ID>
+        </CarrierParty>
+      </SubordinateMaterialMovement>
+      <DesignatedPhysicalProcess>
+        <TypeCode>9008390009635</TypeCode>
+      </DesignatedPhysicalProcess>
+      <EffectiveTransfer>
+        <HandOverParty>
+          <ID>1025360</ID>
+        </HandOverParty>
+        <TakeOverParty>
+          <ID>9008390437711</ID>
+          <SpecifiedOrganization>
+            <Name>i4next international computer trading &amp; leasing Ges.m.b.H.</Name>
+            <PostalAddress>
+              <CityName>Sooß</CityName>
+              <PostcodeCode>2504</PostcodeCode>
+              <StreetName>Uhlstraße</StreetName>
+              <BuildingNumber>3</BuildingNumber>
+              <CountryID>AT</CountryID>
+            </PostalAddress>
+          </SpecifiedOrganization>
+        </TakeOverParty>
+      </EffectiveTransfer>
+      <PreliminaryCargoMaterial>
+        <ClassificationCode>9008390025536</ClassificationCode>
+        <MassQualifiedMeasurement>
+          <MeasurementMeasure>360</MeasurementMeasure>
+          <MeasurementMethodCode>9008390100028</MeasurementMethodCode>
+        </MassQualifiedMeasurement>
+      </PreliminaryCargoMaterial>
+    </WasteTransportMaterialMovement>
+  </SpecifiedConsignmentNote>
+</EBSConsignmentNoteNotification>

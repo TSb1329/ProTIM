@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--created with ProTIM-->
+<ELSConsignmentNoteNotification>
+  <NotifierPartyID>9008390437711</NotifierPartyID>
+  <SpecifiedConsignmentNote>
+    <ConsignmentNoteStatusCode>9008390106426</ConsignmentNoteStatusCode>
+    <WasteTransportMaterialMovement>
+      <TakeOverPartyID>1016624</TakeOverPartyID>
+      <LoadingLocation>
+        <PostalAddress>
+          <PostcodeCode>1020</PostcodeCode>
+          <CountryID>AT</CountryID>
+        </PostalAddress>
+      </LoadingLocation>
+      <UnloadingLocation>
+        <OperatingSiteID>9008390682678</OperatingSiteID>
+      </UnloadingLocation>
+      <MovementPeriod>
+        <StartDateTime>2026-03-23</StartDateTime>
+        <EndDateTime>2026-03-23</EndDateTime>
+      </MovementPeriod>
+      <SubordinateMaterialMovement>
+        <TransportModeCode>9008390100059</TransportModeCode>
+        <TransportMeansID>k.A.</TransportMeansID>
+        <CarrierParty>
+          <ID>9008390437711</ID>
+        </CarrierParty>
+      </SubordinateMaterialMovement>
+      <DesignatedPhysicalProcess>
+        <TypeCode>9008390009635</TypeCode>
+      </DesignatedPhysicalProcess>
+      <EffectiveTransfer>
+        <HandOverParty>
+          <ID>9008390156582</ID>
+        </HandOverParty>
+      </EffectiveTransfer>
+      <PreliminaryCargoMaterial>
+        <ClassificationCode>9008390025574</ClassificationCode>
+        <MassQualifiedMeasurement>
+          <MeasurementMeasure>400.</MeasurementMeasure>
+          <MeasurementMethodCode>9008390100011</MeasurementMethodCode>
+        </MassQualifiedMeasurement>
+      </PreliminaryCargoMaterial>
+    </WasteTransportMaterialMovement>
+  </SpecifiedConsignmentNote>
+</ELSConsignmentNoteNotification>
