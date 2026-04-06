@@ -75,6 +75,19 @@ Public Sub Formularaufruf(Formular As String, Übergabetext As String, Gebunden A
 End Sub
 
 
+Public Function ÖffneLieferscheinFürProjekt(ByVal ProjektNrWert As Long) As Boolean
+    ÖffneLieferscheinFürProjekt = False
+    
+    If ProjektNrWert <= 0 Then
+        FehlerMeldung "Für den Lieferschein konnte keine gültige ProjektNr ermittelt werden!"
+        Exit Function
+    End If
+    
+    Formularaufruf "F_LieferSchein", "ProjektNr = " & ProjektNrWert, True
+    ÖffneLieferscheinFürProjekt = True
+End Function
+
+
 'Public Function Start()
 '    Call ShowWindow(hWndAccessApp, 2)
 '    Dim lokalerPfad As String
