@@ -20,8 +20,8 @@ Public TempVorgangAngebotID As Long
 Public TempVorgangAbholterminID As Long
 Public TempVorgangAbholungID As Long
 Public TempVorgangAbholpapiereID As Long
-Public TempVorgangLöschungID As Long
-Public TempVorgangLöschzertifikateID As Long
+Public TempVorgangLoeschungID As Long
+Public TempVorgangLoeschzertifikateID As Long
 Public TempVorgangVerrechnungID As Long
 Public TempVorgangerledigtID As Long
 Public GblKundenID As Long
@@ -75,8 +75,8 @@ Public Sub Formularaufruf(Formular As String, Übergabetext As String, Gebunden A
 End Sub
 
 
-Public Function ÖffneLieferscheinFürProjekt(ByVal ProjektNrWert As Long) As Boolean
-    ÖffneLieferscheinFürProjekt = False
+Public Function OeffneLieferscheinFuerProjekt(ByVal ProjektNrWert As Long) As Boolean
+    OeffneLieferscheinFuerProjekt = False
     
     If ProjektNrWert <= 0 Then
         FehlerMeldung "Für den Lieferschein konnte keine gültige ProjektNr ermittelt werden!"
@@ -84,45 +84,8 @@ Public Function ÖffneLieferscheinFürProjekt(ByVal ProjektNrWert As Long) As Bool
     End If
     
     Formularaufruf "F_LieferSchein", "ProjektNr = " & ProjektNrWert, True
-    ÖffneLieferscheinFürProjekt = True
+    OeffneLieferscheinFuerProjekt = True
 End Function
-
-
-'Public Function Start()
-'    Call ShowWindow(hWndAccessApp, 2)
-'    Dim lokalerPfad As String
-'
-'    'Laufwerkpfad wird hier angepasst!!!
-'
-'    'Pfad in i4next
-'    'Wenn am lokalen Rechner:
-'    If Left(Application.CurrentProject.Path, 3) = "D:\" Then
-'        lokalerPfad = "D:\"
-'    ElseIf Left(Application.CurrentProject.Path, 15) = "\\I4next-s24\d\" Then
-'        lokalerPfad = "\\I4next-s24\d\"
-'    Else: GoTo ErrNoPath
-'    End If
-'
-'    If Right(Application.CurrentProject.Path, 4) = "Test" Then
-'        Laufwerkpfad = lokalerPfad & "Tools\ProTIM - Test\Projekte\"
-'        LaufwerkpfadBEDB = lokalerPfad & "Tools\ProTIM - Test\"
-'        Entwicklung = True
-'    Else
-'        Laufwerkpfad = lokalerPfad & "Projekte\"
-'        LaufwerkpfadBEDB = lokalerPfad & "Tools\ProTIM\"
-'        Entwicklung = False
-'    End If
-'
-'    NeuVerknüpfen
-'    DoCmd.OpenForm "F_ProjektListe"
-'
-'    Exit Function
-'
-'ErrNoPath:
-'    Hinweis "Fehlerhafter Pfad!"
-'    DoCmd.Quit
-'
-'End Function
 
 
 Public Function Start()
@@ -149,7 +112,7 @@ Public Function Start()
             Entwicklung = True
 
         Case "ProTIM"
-            Laufwerkpfad = projektPfad & "\Projekte\"
+            Laufwerkpfad = "\\I4next-s24\d\Projekte\"
             LaufwerkpfadBEDB = projektPfad & "\"
             Entwicklung = False
 
@@ -167,6 +130,7 @@ ErrNoPath:
     DoCmd.Quit
 
 End Function
+
 
 Public Sub NeuVerknüpfen()
     Dim db As Database
@@ -213,14 +177,15 @@ Public Sub ActivateUser(Tabelle As String, NrID As Long, Anmelden As Boolean)
 
     Dim strSQL As String
 
-    DoCmd.SetWarnings False
     If Anmelden Then
-        strSQL = "INSERT INTO AktiveUser (Tabelle, NrID, User, letzteAktivität) VALUES ('" & Tabelle & "', " & NrID & ", '" & ActiveUser & "', '" & Now & "');"
+        ReleaseUserLock Tabelle, NrID, ActiveUser
+        strSQL = "INSERT INTO AktiveUser (Tabelle, NrID, [User], letzteAktivität) VALUES (" & _
+                 SqlText(Tabelle) & ", " & NrID & ", " & SqlText(ActiveUser) & ", " & SqlText(Format$(Now, "yyyy-mm-dd hh:nn:ss")) & ");"
     Else
-        strSQL = "DELETE * FROM AktiveUser WHERE Tabelle = '" & Tabelle & "' AND NrID = " & NrID & ";"
+        strSQL = "DELETE * FROM AktiveUser WHERE Tabelle = " & SqlText(Tabelle) & _
+                 " AND NrID = " & NrID & " AND [User] = " & SqlText(ActiveUser) & ";"
     End If
-    DoCmd.RunSQL strSQL
-    DoCmd.SetWarnings False
+    ExecuteActionQuery strSQL
 
 End Sub
 
@@ -234,6 +199,48 @@ Public Function ActiveUser() As String
     ActiveUser = Netzwerk.UserName & "_" & Netzwerk.Computername
 
 End Function
+
+
+Public Function SqlText(ByVal Wert As Variant) As String
+    If IsNull(Wert) Then
+        SqlText = "Null"
+    Else
+        SqlText = "'" & Replace(CStr(Wert), "'", "''") & "'"
+    End If
+End Function
+
+
+Public Sub ExecuteActionQuery(ByVal strSQL As String)
+    CurrentDb.Execute strSQL, dbFailOnError
+End Sub
+
+
+Public Function IsRecordLocked(ByVal Tabelle As String, ByVal NrID As Long) As Boolean
+    IsRecordLocked = (DCount("*", "AktiveUser", "Tabelle = " & SqlText(Tabelle) & " AND NrID = " & NrID) > 0)
+End Function
+
+
+Public Function GetLockingUser(ByVal Tabelle As String, ByVal NrID As Long) As String
+    GetLockingUser = Nz(DLookup("[User]", "AktiveUser", "Tabelle = " & SqlText(Tabelle) & " AND NrID = " & NrID), "")
+End Function
+
+
+Public Sub ReleaseUserLock(ByVal Tabelle As String, ByVal NrID As Long, Optional ByVal UserName As String = "")
+    Dim strSQL As String
+
+    strSQL = "DELETE * FROM AktiveUser WHERE Tabelle = " & SqlText(Tabelle) & " AND NrID = " & NrID
+    If UserName <> "" Then
+        strSQL = strSQL & " AND [User] = " & SqlText(UserName)
+    End If
+    strSQL = strSQL & ";"
+
+    ExecuteActionQuery strSQL
+End Sub
+
+
+Public Sub ReleaseAllLocksForUser(ByVal UserName As String)
+    ExecuteActionQuery "DELETE * FROM AktiveUser WHERE [User] = " & SqlText(UserName) & ";"
+End Sub
 
 
 Public Function UserNameID() As Integer
@@ -295,18 +302,6 @@ Fehlerbehandlung:
     MsgBox "Fehler in maxWert: " & Err.Description, vbCritical
     maxWert = -1
 End Function
-
-'Public Function maxWert(Wert As String, Tabelle As String) As Integer
-'    Dim db As DAO.Database
-'    Dim rs As DAO.Recordset
-'
-'    ' Öffnen Sie die Datenbank.
-'    Set db = CurrentDb()
-'
-'    ' Führen Sie die Abfrage aus, um den maximalen Wert zu erhalten.
-'    Set rs = db.OpenRecordset("SELECT Max(" & Wert & ") AS MaxWert FROM " & Tabelle)
-'    maxWert = rs("MaxWert")
-'End Function
 
 
 Public Sub DirListe(DateienImPfad As ListBox)
@@ -614,3 +609,6 @@ Public Function IstFormularOffen(ByVal FormularName As String) As Boolean
 Fehler:
     IstFormularOffen = False
 End Function
+
+
+
