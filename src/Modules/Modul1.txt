@@ -16,7 +16,7 @@ Public Sub ExportAccessObjects()
     ExportModules exportPath & "\Modules"
     ExportQueries exportPath & "\Queries"
 
-    MsgBox "Export abgeschlossen: " & exportPath, vbInformation
+    Hinweis "Export abgeschlossen: " & exportPath
 End Sub
 
 Private Sub ExportForms(ByVal targetFolder As String)
@@ -64,3 +64,4 @@ Private Function CleanFileName(ByVal value As String) As String
         CleanFileName = Replace(CleanFileName, badChars(i), "_")
     Next i
 End Function
+

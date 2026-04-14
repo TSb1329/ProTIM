@@ -7,32 +7,16 @@ Public Sub ImportAusTextListe()
     Dim i As Long
     
     basisPfad = "C:\Users\Thomas\OneDrive\EDV\Projekte\i4next\ProTIM - Test\src\"
-    
-    dateien = Array( _
-        "Modules\Global.txt", _
-        "Modules\Import.txt", _
-        "Forms\F_ProjektListe.txt", _
-        "Forms\F_Lieferschein.txt", _
-        "Forms\F_ProjektBearbeitung.txt", _
-        "Forms\F_LöschungBearbeitung.txt", _
-        "Forms\F_LöschzertifikateBearbeitung.txt", _
-        "Forms\F_AbholterminBearbeitung.txt", _
-        "Forms\F_AbholpapiereBearbeitung.txt", _
-        "Forms\F_AbholungBearbeitung.txt", _
-        "Forms\F_AbholListe.txt", _
-        "Forms\F_AbholListeBearbeitung.txt", _
-        "Forms\F_BoxenAdmin.txt", _
-        "Forms\F_BoxenRücklieferung.txt", _
-        "Forms\F_BoxenRücklieferungBearbeitung.txt", _
-        "Forms\F_Statistik.txt", _
-        "Forms\UF_KundenAnsprechpersonAuswahlListe.txt" _
-    )
-    
+
+dateien = Array( _
+    "Forms\F_ProjektBearbeitung.txt" _
+)
+
     For i = LBound(dateien) To UBound(dateien)
         ImportEineTextdatei basisPfad & dateien(i)
     Next i
     
-    MsgBox "Import abgeschlossen.", vbInformation
+    Hinweis "Import abgeschlossen."
 End Sub
 
 Private Sub ImportEineTextdatei(ByVal vollPfad As String)
