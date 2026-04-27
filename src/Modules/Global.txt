@@ -532,56 +532,6 @@ Public Sub OeffneDateiAusListe(frm As Form, DateienImPfad As ListBox)
 End Sub
 
 
-Public Sub DirCSVDateien(CSVDateien As ListBox)
-    Dim strOrdnerPfad As String
-    Dim strDatei As String
-    Dim strCSVDatei As String
-
-    ' Definiere den Pfad zum Ordner, dessen Inhalt du anzeigen möchtest
-    strOrdnerPfad = Laufwerkpfad & Forms!F_ProjektBearbeitung.ProjektName & "\"
-
-    ' Überprüfe, ob der angegebene Ordner existiert
-    If Dir(strOrdnerPfad, vbDirectory) <> "" Then
-        ' Schleife durch alle Dateien im Ordner
-        strDatei = Dir(strOrdnerPfad & "*.csv")
-        CSVDateien.RowSource = ""
-        Do While strDatei <> ""
-            ' Füge den Dateinamen dem Listenfeld hinzu
-            strCSVDatei = Laufwerkpfad & Forms!F_ProjektBearbeitung.ProjektName & "\" & strDatei
-            If DCount("Dateiname", "ImportierteCSVDateien", "Dateiname = '" & strCSVDatei & "'") = 0 Then
-                CSVDateien.AddItem strDatei
-            End If
-            ' Gehe zur nächsten Datei im Ordner
-            strDatei = Dir
-        Loop
-    Else
-        Hinweis "Der angegebene Ordner existiert nicht!"
-    End If
-End Sub
-
-
-Public Sub ImportiereCSV(importFileName As String, ZielTabelle As String) ' Pfad zur CSV-Datei
-    Dim db As Database
-    Dim importSpecificationName As String
-    Dim strSQL As String
-
-    ' vorhandene Daten löschen
-    strSQL = "DELETE * FROM " & ZielTabelle & ";"
-    ExecuteActionQuery strSQL
-
-    ' Spezifikation für den Import (optional, wenn du eine erstellt hast)
-    importSpecificationName = "Report_csv_Importspezifikation"
-
-    Set db = CurrentDb
-
-    ' Führe den Import durch
-    DoCmd.TransferText acImportDelim, importSpecificationName, ZielTabelle, importFileName, True
-
-    Set db = Nothing
-
-End Sub
-
-
 Public Sub EintragInOutlookKalender(Betreff As String, Beginn As Date, Ende As Date, Ort As String, TerminTxt As String)
 
     Dim objOutlook As Object
