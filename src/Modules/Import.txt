@@ -1,31 +1,42 @@
 Option Compare Database
 Option Explicit
 
+
 Public Sub ImportAusTextListe()
     Dim basisPfad As String
     Dim dateien As Variant
     Dim i As Long
-    
+
     basisPfad = "C:\Users\Thomas\OneDrive\EDV\Projekte\i4next\ProTIM - Test\src\"
 
-dateien = Array( _
-    "Forms\F_ProjektBearbeitung.txt" _
-)
+    dateien = Array( _
+        "Modules\Global.txt", _
+        "Forms\F_BoxenDatenAuswahl.txt", _
+        "Forms\F_AngebotBearbeitung.txt", _
+        "Forms\F_AbholterminBearbeitung.txt", _
+        "Forms\F_AbholungBearbeitung.txt", _
+        "Forms\F_AbholpapiereBearbeitung.txt", _
+        "Forms\F_LöschungBearbeitung.txt", _
+        "Forms\F_LöschzertifikateBearbeitung.txt", _
+        "Forms\F_VerrechnungBearbeitung.txt", _
+        "Forms\F_erledigtBearbeitung.txt" _
+    )
 
     For i = LBound(dateien) To UBound(dateien)
         ImportEineTextdatei basisPfad & dateien(i)
     Next i
-    
+
     Hinweis "Import abgeschlossen."
 End Sub
 
-Private Sub ImportEineTextdatei(ByVal vollPfad As String)
+
+Private Sub ImportEineTextdatei(ByVal VollPfad As String)
     Dim objTyp As AcObjectType
     Dim objName As String
     Dim relPfad As String
     
-    relPfad = Mid(vollPfad, InStr(1, vollPfad, "\src\") + 5)
-    objName = Mid(vollPfad, InStrRev(vollPfad, "\") + 1)
+    relPfad = Mid(VollPfad, InStr(1, VollPfad, "\src\") + 5)
+    objName = Mid(VollPfad, InStrRev(VollPfad, "\") + 1)
     objName = Left(objName, Len(objName) - 4)
     
     If Left(relPfad, 6) = "Forms\" Then
@@ -37,12 +48,12 @@ Private Sub ImportEineTextdatei(ByVal vollPfad As String)
     ElseIf Left(relPfad, 8) = "Modules\" Then
         objTyp = acModule
     Else
-        Err.Raise vbObjectError + 1000, , "Unbekannter Objekttyp: " & vollPfad
+        Err.Raise vbObjectError + 1000, , "Unbekannter Objekttyp: " & VollPfad
     End If
     
     On Error Resume Next
     DoCmd.Close objTyp, objName, acSaveNo
     On Error GoTo 0
     
-    Application.LoadFromText objTyp, objName, vollPfad
+    Application.LoadFromText objTyp, objName, VollPfad
 End Sub

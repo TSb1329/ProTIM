@@ -1,4 +1,0 @@
-Beim Importieren des Objekts 'F_Lieferschein' wurde von ProTIM 1.00 ein Fehler festgestellt.
-
-In Zeile 1724 wurde ein Fehler entdeckt.
-Diese Eigenschaft kann auf dieses Steuerelement nicht angewendet werden.
