@@ -24,6 +24,19 @@ Public TempVorgangLoeschungID As Long
 Public TempVorgangLoeschzertifikateID As Long
 Public TempVorgangVerrechnungID As Long
 Public TempVorgangerledigtID As Long
+Public TempProjektVorgangBearbeitungID As Long
+Public TempProjektVorgangBearbeitungStatusID As Long
+Public TempProjektVorgangBearbeitungStatusText As String
+Public TempProjektVorgangBearbeitungUpdateProzedur As String
+Public TempProjektVorgangBearbeitungFormCaption As String
+Public TempProjektVorgangBearbeitungDatumCaption As String
+Public TempProjektVorgangBearbeitungBemerkungCaption As String
+Public TempProjektVorgangBearbeitungDetailBackColor As Long
+Public TempProjektVorgangBearbeitungBemerkungForeColor As Long
+Public TempProjektVorgangBearbeitungDatumForeColor As Long
+Public TempProjektVorgangBearbeitungDatumUndZeit As Boolean
+Public TempProjektVorgangBearbeitungDatumNachfragen As Boolean
+Public TempProjektVorgangBearbeitungDateienHinweis As Boolean
 Public GblKundenID As Long
 Public GblKundenListeModus As String
 Public GblAnsprechpersonID As Long
@@ -208,6 +221,23 @@ Public Function LoescheProjektVorgangStatus(ByVal VorgangID As Long, ByVal Statu
     LoescheProjektVorgangStatus = True
 End Function
 
+
+
+Public Sub SetzeProjektVorgangBearbeitungKontext(ByVal VorgangID As Long, ByVal ProjektVorgangID As Long, ByVal StatusText As String, ByVal UpdateProzedur As String, ByVal FormCaption As String, ByVal DatumCaption As String, ByVal BemerkungCaption As String, ByVal DetailBackColor As Long, ByVal BemerkungForeColor As Long, ByVal DatumForeColor As Long, Optional ByVal DatumUndZeit As Boolean = False, Optional ByVal DatumNachfragen As Boolean = False, Optional ByVal DateienHinweis As Boolean = True)
+    TempProjektVorgangBearbeitungID = VorgangID
+    TempProjektVorgangBearbeitungStatusID = ProjektVorgangID
+    TempProjektVorgangBearbeitungStatusText = StatusText
+    TempProjektVorgangBearbeitungUpdateProzedur = UpdateProzedur
+    TempProjektVorgangBearbeitungFormCaption = FormCaption
+    TempProjektVorgangBearbeitungDatumCaption = DatumCaption
+    TempProjektVorgangBearbeitungBemerkungCaption = BemerkungCaption
+    TempProjektVorgangBearbeitungDetailBackColor = DetailBackColor
+    TempProjektVorgangBearbeitungBemerkungForeColor = BemerkungForeColor
+    TempProjektVorgangBearbeitungDatumForeColor = DatumForeColor
+    TempProjektVorgangBearbeitungDatumUndZeit = DatumUndZeit
+    TempProjektVorgangBearbeitungDatumNachfragen = DatumNachfragen
+    TempProjektVorgangBearbeitungDateienHinweis = DateienHinweis
+End Sub
 
 Public Function Start()
 

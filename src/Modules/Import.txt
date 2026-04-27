@@ -12,14 +12,9 @@ Public Sub ImportAusTextListe()
     dateien = Array( _
         "Modules\Global.txt", _
         "Forms\F_BoxenDatenAuswahl.txt", _
-        "Forms\F_AngebotBearbeitung.txt", _
-        "Forms\F_AbholterminBearbeitung.txt", _
-        "Forms\F_AbholungBearbeitung.txt", _
-        "Forms\F_AbholpapiereBearbeitung.txt", _
-        "Forms\F_LöschungBearbeitung.txt", _
-        "Forms\F_LöschzertifikateBearbeitung.txt", _
-        "Forms\F_VerrechnungBearbeitung.txt", _
-        "Forms\F_erledigtBearbeitung.txt" _
+        "Forms\F_KalenderMeldung.txt", _
+        "Forms\F_ProjektVorgangBearbeitung.txt", _
+        "Forms\F_ProjektBearbeitung.txt" _
     )
 
     For i = LBound(dateien) To UBound(dateien)

@@ -1,0 +1,4 @@
+Beim Importieren des Objekts 'F_ProjektVorgangBearbeitung' wurde von ProTIM 1.00 ein Fehler festgestellt.
+
+In Zeile 1132 wurde ein Fehler entdeckt.
+Erwartet: 'Begin'.  Gefunden: CommandButton.
